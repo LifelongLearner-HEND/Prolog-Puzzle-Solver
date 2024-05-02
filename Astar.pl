@@ -1,13 +1,28 @@
 %----------------------------------->>>>>>>>>State intialization
+% grid([
+%     [('red', 6), ('blue', 5), ('blue', 4), ('red', 3)],
+%     [('red', 5), ('red', 4), ('blue', 3), ('blue', 2)],
+%     [('red', 2), ('red', 3), ('red', 2), ('red', 1)],
+%     [('blue', 3), ('blue', 2), ('blue', 1), ('red', 0)]
+% ]).
+
 grid([
-    [('red', 6), ('blue', 5), ('blue', 4), ('red', 3)],
-    [('red', 5), ('red', 4), ('blue', 3), ('blue', 2)],
-    [('red', 4), ('red', 3), ('red', 2), ('red', 1)],
-    [('blue', 3), ('blue', 2), ('blue', 1), ('red', 0)]
+    [('red', 1), ('red', 1), ('yellow', 1), ('yellow', 1)],
+    [('red', 1), ('blue', 1), ('red', 1), ('red', 1)],
+    [('red', 1), ('red', 1), ('red', 1), ('yellow', 1)],
+    [('blue',1), ('red', 1), ('blue',1), ('yellow', 1)]
 ]).
 
+% grid([
+%     [('red', 6), ('blue', 5), ('blue', 4), ('red', 3)],
+%     [('red', 5), ('red', 4), ('blue', 3), ('blue', 2)],
+%     [('red', 4), ('red', 3), ('red', 2), ('red', 1)],
+%     [('blue', 3), ('blue', 2), ('blue', 1), ('red', 0)]
+% ]).
+
+
 startpos((0, 0)).  
-goalpos((3, 3)). 
+goalpos((1, 3)). 
 
 %----------------------------------->>>>>>>>>print grid part
 
@@ -43,7 +58,7 @@ queue_pop([Head | Tail], Tail, Head). % Pop
 
 % Heuristic Function: Manhattan Distance
 % Calculates the estimated cost from the current position to the goal
-manhattan((R1, C1), (R2, C2), Distance) :-
+hueristic_value((R1, C1), (R2, C2), Distance) :-
     Distance is abs(R1 - R2) + abs(C1 - C2). % Manhattan distance formula
 
 %----------------------------------->>>>>>>>>Move predicates 
@@ -92,7 +107,7 @@ get_cost((R, C), Grid, Cost) :-
 
 a_star(Grid, Start, Goal, Path) :-
     get_cost(Start, Grid, StartCost),
-    manhattan(Start, Goal, HeuristicCost), % Calculate heuristic for Start
+    hueristic_value(Start, Goal, HeuristicCost), % Calculate heuristic for Start
     queue_add([[HeuristicCost, StartCost, [(Start, StartCost)]]], [], PQ), % Initialize with heuristic and path cost
     a_star_search(Grid, PQ, Goal, [], Path).
 
@@ -120,7 +135,7 @@ a_star_search(Grid, PQ, Goal, Visited, Path) :-
                 \+ member((NewPos, _), Visited), % Ensure new position isn't in visited
                 get_cost(NewPos, Grid, NewCostNode), % Get the cost of the new position
                 NewCost is CurrentCost + NewCostNode, % Update the actual path cost
-                manhattan(NewPos, Goal, NewHeuristic), % Heuristic from NewPos to Goal
+                hueristic_value(NewPos, Goal, NewHeuristic), % Heuristic from NewPos to Goal
                 NewPriority is NewCost + NewHeuristic % Total priority
             ),
             NewPathsWithCost % Collect all valid new paths with their costs and heuristics
