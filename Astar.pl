@@ -3,13 +3,20 @@
 % grid([
 %     [('red', 6), ('blue', 5), ('blue', 4), ('red', 3)],
 %     [('red', 5), ('red', 4), ('blue', 3), ('blue', 2)],
-%     [('red', 2), ('red', 3), ('red', 2), ('red', 1)],
+%     [('red', 2), ('red', 3), ('red', 2), ('blue', 1)],
 %     [('blue', 3), ('blue', 2), ('blue', 1), ('red', 0)]
 % ]).
 
+grid([
+    [('red', 1), ('red', 1), ('yellow', 1), ('yellow', 1)],
+    [('red', 1), ('blue', 1), ('red', 1), ('red', 1)],
+    [('red', 1), ('red', 1), ('red', 1), ('yellow', 1)],
+    [('blue',1), ('red', 1), ('blue',1), ('yellow', 1)]
+]).
+
 % grid([
 %     [('red', 1), ('red', 1), ('yellow', 1), ('yellow', 1)],
-%     [('red', 1), ('blue', 1), ('red', 1), ('red', 1)],
+%     [('red', 1), ('blue', 1), ('blue', 1), ('red', 1)],
 %     [('red', 1), ('red', 1), ('red', 1), ('yellow', 1)],
 %     [('blue',1), ('red', 1), ('blue',1), ('yellow', 1)]
 % ]).
@@ -107,6 +114,7 @@ a_star(Grid, Start, Goal, Path) :-
 %----------------------------------->>>>>>>>>A_star algorithm 
 
 % A* Search Predicate with Cost-Based Priority Queue and Heuristic
+% A* Search Predicate with Cost-Based Priority Queue and Heuristic
 a_star_search(Grid, PQ, Goal, Visited, Path) :-
     % If the priority queue is empty, no path exists
     (PQ = [] ->
@@ -115,19 +123,22 @@ a_star_search(Grid, PQ, Goal, Visited, Path) :-
         % Pop the lowest cost path from the queue
         queue_pop(PQ, NewPQ, PathWithCost),
         [Priority, CurrentCost, [(CurrentPos, CurrentCostNode) | Rest]] = PathWithCost,
-        
+
         % If we reach the goal, return the path
         (CurrentPos = Goal ->
-            reverse([(CurrentPos, CurrentCostNode) | Rest], Path),
-            !
+            reverse([(CurrentPos, CurrentCostNode) | Rest], Path)
         ;
+
+            % Mark current position as visited
+            NewVisited = [(CurrentPos, CurrentCostNode) | Visited],
+
             % Generate new valid moves from the current position
             findall(
                 [NewPriority, NewCost, [(NewPos, NewCostNode), (CurrentPos, CurrentCostNode) | Rest]],
                 (
                     move(CurrentPos, NewPos), % Generate new position
                     valid_move(CurrentPos, NewPos, Grid), % Check if valid
-                    \+ member((NewPos, _), Visited), % Ensure no re-exploration
+                    \+ member((NewPos, _), NewVisited), % Avoid re-exploration
                     get_cost(NewPos, Grid, NewCostNode), % Get cost at the new position
                     NewCost is CurrentCost + NewCostNode, % Calculate new path cost
                     hueristic_value(NewPos, Goal, NewHeuristic), % Calculate heuristic
@@ -135,14 +146,14 @@ a_star_search(Grid, PQ, Goal, Visited, Path) :-
                 ),
                 NewPathsWithCost
             ),
-
+            writeln(NewPathsWithCost),
             % If valid moves are found, add them to the queue and recurse
             (NewPathsWithCost \= [] ->
                 queue_add(NewPathsWithCost, NewPQ, UpdatedPQ),
-                a_star_search(Grid, UpdatedPQ, Goal, [CurrentPos | Visited], Path) % Track visited nodes
+                a_star_search(Grid, UpdatedPQ, Goal, NewVisited, Path) % Track visited nodes
             ;
                 % If no valid moves, continue with other paths in the queue
-                a_star_search(Grid, NewPQ, Goal, [CurrentPos | Visited], Path)
+                a_star_search(Grid, NewPQ, Goal, NewVisited, Path)
             )
         )
     ).
